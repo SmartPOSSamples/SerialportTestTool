@@ -4,7 +4,7 @@ android {
     compileSdkVersion 23
     defaultConfig {
         applicationId "com.wizarpos.serialportopen"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 23
         versionCode 16
         versionName "1.6"

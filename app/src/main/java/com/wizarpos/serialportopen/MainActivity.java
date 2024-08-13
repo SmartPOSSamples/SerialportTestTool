@@ -289,6 +289,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String toHexString = ByteConvertStringUtil.bytesToHexString(arryData);
             if(toHexString.length()>0){
                 sendMsg(1, toHexString+"\n");
+                Logger.debug("Read HexString:"+toHexString);
             }
 //            write(arryData);
 //            write(null);
@@ -413,9 +414,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
             try {
-//                device.write(editVal.getBytes(), 0, editVal.getBytes().length);
-                byte[] bytes1 = {0x0f, 0x31, 0x35, 0x4d, 0x4b, 0x45, 0x59, 0x0e, 0x10};
-                serialPortDevice.write(bytes1, 0, bytes1.length);
+                serialPortDevice.write(editVal.getBytes(), 0, editVal.getBytes().length);
+//                byte[] bytes1 = {0x0f, 0x31, 0x35, 0x4d, 0x4b, 0x45, 0x59, 0x0e, 0x10};
+//                serialPortDevice.write(bytes1, 0, bytes1.length);
             } catch (DeviceException e) {
                 sendMsg(3, "write failed");
                 e.printStackTrace();

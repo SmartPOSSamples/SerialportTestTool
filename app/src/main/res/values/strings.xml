@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SerialPortTest</string>
+    <string name="app_name">SerialPortTestTool</string>
     <string-array name="bytelength">
         <item>256</item>
         <item>512</item>
