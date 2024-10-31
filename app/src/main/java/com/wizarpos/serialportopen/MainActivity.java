@@ -3,11 +3,11 @@ package com.wizarpos.serialportopen;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -28,98 +28,19 @@ import com.cloudpos.serialport.SerialPortOperationResult;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    public boolean isOpened = false;
     private static final String TAG = "SerialPortOpenDemo";
-
+    public boolean isOpened = false;
+    Thread thread;
+    SerialPortDevice serialPortDevice;
+    int timeout = 1000;
     private Button openBtn, closeBtn, writeBtn;
     private TextView textView, tv_clr, tv_log;
     private RadioGroup portModeRG, dataModeRG;
     private EditText et_send, et_baudrate;
     private Spinner baudrateSpinner, bytelenghtSpinner;
     private CheckBox cb_flowcontrol;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        textView = (TextView) findViewById(R.id.textView);
-        textView.setMovementMethod(ScrollingMovementMethod.getInstance());
-        tv_clr = (TextView) findViewById(R.id.tv_clr);
-        tv_log = (TextView) findViewById(R.id.tv_log);
-        tv_log.setText("" + getPkgName(this));
-        openBtn = (Button) findViewById(R.id.open);
-        closeBtn = (Button) findViewById(R.id.close);
-        writeBtn = (Button) findViewById(R.id.write);
-        portModeRG = (RadioGroup) findViewById(R.id.port_mode);
-        dataModeRG = (RadioGroup) findViewById(R.id.data_mode);
-        et_send = (EditText) findViewById(R.id.et_send);
-        et_baudrate = (EditText) findViewById(R.id.et_baudrate);
-        baudrateSpinner = (Spinner) findViewById(R.id.sp_badrate);
-        bytelenghtSpinner = (Spinner) findViewById(R.id.sp_sendbyte);
-        cb_flowcontrol = (CheckBox) findViewById(R.id.cb_flowcontrol);
-
-
-        baudrateSpinner.setOnItemSelectedListener(new BaudSpinnerSelectedListener());
-        baudrateSpinner.setSelection(5);
-        bytelenghtSpinner.setOnItemSelectedListener(new ByteSpinnerSelectedListener());
-        bytelenghtSpinner.setSelection(2);
-        openBtn.setOnClickListener(this);
-        closeBtn.setOnClickListener(this);
-        writeBtn.setOnClickListener(this);
-        tv_clr.setOnClickListener(this);
-    }
-
-    class BaudSpinnerSelectedListener implements AdapterView.OnItemSelectedListener {
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            String[] baudrates = getResources().getStringArray(R.array.baudrates);
-            Logger.debug("m[baudrateSpinner] = " + baudrates[position]);
-            et_baudrate.setText(baudrates[position]);
-        }
-
-        public void onNothingSelected(AdapterView<?> parent) {
-        }
-    }
-
     private int byteCNT = 0;
-
-    class ByteSpinnerSelectedListener implements AdapterView.OnItemSelectedListener {
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            String[] bytelength = getResources().getStringArray(R.array.bytelength);
-            Logger.debug("m[bytelenghtSpinner] = " + bytelength[position]);
-            byteCNT = Integer.parseInt(bytelength[position]);
-        }
-
-        public void onNothingSelected(AdapterView<?> parent) {
-        }
-    }
-
-    Thread thread;
     private boolean run;
-
-    private void threadRead() {
-        if (thread == null || thread.getState() == Thread.State.TERMINATED) {
-            thread = new Thread() {
-                @Override
-                public void run() {
-                    super.run();
-                    while (run) {
-                        read();
-                        try {
-                            sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            };
-            thread.start();
-        } else {
-            sendMsg(3, "read thread already run!!");
-        }
-
-    }
-
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -189,6 +110,132 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
     };
+    private byte[] tempBytes = new byte[40960];
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        textView = (TextView) findViewById(R.id.textView);
+        textView.setMovementMethod(ScrollingMovementMethod.getInstance());
+        tv_clr = (TextView) findViewById(R.id.tv_clr);
+        tv_log = (TextView) findViewById(R.id.tv_log);
+        tv_log.setText("" + getPkgName(this));
+        openBtn = (Button) findViewById(R.id.open);
+        closeBtn = (Button) findViewById(R.id.close);
+        writeBtn = (Button) findViewById(R.id.write);
+        portModeRG = (RadioGroup) findViewById(R.id.port_mode);
+        dataModeRG = (RadioGroup) findViewById(R.id.data_mode);
+        et_send = (EditText) findViewById(R.id.et_send);
+        et_baudrate = (EditText) findViewById(R.id.et_baudrate);
+        baudrateSpinner = (Spinner) findViewById(R.id.sp_badrate);
+        bytelenghtSpinner = (Spinner) findViewById(R.id.sp_sendbyte);
+        cb_flowcontrol = (CheckBox) findViewById(R.id.cb_flowcontrol);
+
+
+        baudrateSpinner.setOnItemSelectedListener(new BaudSpinnerSelectedListener());
+        baudrateSpinner.setSelection(5);
+        bytelenghtSpinner.setOnItemSelectedListener(new ByteSpinnerSelectedListener());
+        bytelenghtSpinner.setSelection(2);
+        openBtn.setOnClickListener(this);
+        closeBtn.setOnClickListener(this);
+        writeBtn.setOnClickListener(this);
+        tv_clr.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (isOpened) {
+            handler.removeMessages(5);
+            close();
+        }
+    }
+
+    private void close() {
+        try {
+            handler.removeMessages(5);
+            serialPortDevice.close();
+            isOpened = false;
+            sendMsg(3, "close success");
+        } catch (DeviceException e) {
+            Log.d(TAG, "SerialPort close result < 0");
+//            sendMsg(3, "close failed");
+            e.printStackTrace();
+        }
+    }
+
+    private void sendMsg(int code, Object msg) {
+        handler.obtainMessage(code, msg).sendToTarget();
+    }
+
+    public String getPkgName(Context context) {
+        PackageManager manager = context.getPackageManager();
+        String name = null;
+        try {
+            PackageInfo info = manager.getPackageInfo(context.getPackageName(), 0);
+            name = info.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return name;
+    }
+
+    private void threadRead() {
+        if (thread == null || thread.getState() == Thread.State.TERMINATED) {
+            thread = new Thread() {
+                @Override
+                public void run() {
+                    super.run();
+                    while (run) {
+                        read();
+                        try {
+                            sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            };
+            thread.start();
+        } else {
+            sendMsg(3, "read thread already run!!");
+        }
+
+    }
+
+    private void read() {
+        byte[] arryData = new byte[256];
+        try {
+            SerialPortOperationResult serialPortOperationResult = serialPortDevice.waitForRead(arryData.length, timeout);
+            byte[] data = serialPortOperationResult.getData();
+            int dataLength = serialPortOperationResult.getDataLength();
+            arryData = subByteArray(data, dataLength);
+            for (byte b : arryData) {
+                Logger.debug("arryData = " + b);
+            }
+            String toHexString = ByteConvertStringUtil.bytesToHexString(arryData);
+            if (toHexString.length() > 0) {
+                sendMsg(1, toHexString + "\n");
+                Logger.debug("Read HexString:" + toHexString);
+            }
+//            write(arryData);
+//            write(null);
+        } catch (DeviceException e) {
+//            sendMsg(3, "read failed");
+            e.printStackTrace();
+        }
+    }
+
+    public byte[] subByteArray(byte[] byteArray, int length) {
+        byte[] arrySub = new byte[length];
+
+        for (int i = 0; i < length; ++i) {
+            arrySub[i] = byteArray[i];
+        }
+        return arrySub;
+    }
 
     private void intiRead() {
         byte[] arryData = new byte[256];
@@ -207,7 +254,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    SerialPortDevice serialPortDevice;
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.open:
+                sendMsg(3, "");
+                if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_slave_serial) {
+                    open(0);
+                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_host_serial) {
+                    open(1);
+                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_cdc) {
+                    open(3);
+                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_serial) {
+                    open(2);
+                }
+                break;
+            case R.id.close:
+                sendMsg(4, null);
+                close();
+                break;
+            case R.id.write:
+                write(null);
+                break;
+            case R.id.tv_clr:
+                textView.setText("");
+                break;
+        }
+    }
 
     private void open(int mode) {
         if (isOpened) {
@@ -257,53 +330,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void sendMsg(int code, Object msg) {
-        handler.obtainMessage(code, msg).sendToTarget();
-    }
+    private void write(byte[] arryData) {
+        byte[] bytes = {
+                0x02,//STX
+                0x00, 0x03,//LENGTH
+                0x00, 0x23,//CMD
 
-    private void close() {
+/*
+                //Function parameters +++
+                0x02, 0x00, 0x00, 0x00,//ROW
+                0x00, 0x00, 0x00, 0x00,//COLUMN
+                0x00, 0x0A,//String length
+                0x50, 0x72, 0x6F, 0x63, 0x65, 0x73, 0x73, 0x69, 0x6E, 0x67,//String
+                0x00,//Attribute
+                //Function parameters ---
+*/
+
+                0x20,//XOR
+
+                0x03,//ETX
+        };
+        int result = -999;
+        RadioButton cbc = (RadioButton) findViewById(R.id.rb_usb_cdc);
+        if (cbc.isChecked()) {
+            try {
+                serialPortDevice.write(bytes, 0, bytes.length);
+            } catch (DeviceException e) {
+                sendMsg(3, "write failed");
+                e.printStackTrace();
+            }
+        } else if (arryData != null) {
+            try {
+                serialPortDevice.write(arryData, 0, bytes.length);
+            } catch (DeviceException e) {
+                sendMsg(3, "write failed");
+                e.printStackTrace();
+            }
+        } else {
+            String editVal = et_send.getText().toString();
+            if (editVal.isEmpty()) {
+                sendMsg(3, "please input content!");
+                return;
+            }
+            try {
+                serialPortDevice.write(editVal.getBytes(), 0, editVal.getBytes().length);
+//                byte[] bytes1 = {0x0f, 0x31, 0x35, 0x4d, 0x4b, 0x45, 0x59, 0x0e, 0x10};
+//                serialPortDevice.write(bytes1, 0, bytes1.length);
+            } catch (DeviceException e) {
+                sendMsg(3, "write failed");
+                e.printStackTrace();
+            }
+        }
+        byte[] ends = {0x0A,};
         try {
-            handler.removeMessages(5);
-            serialPortDevice.close();
-            isOpened = false;
-            sendMsg(3, "close success");
+            serialPortDevice.write(ends, 0, ends.length);
         } catch (DeviceException e) {
-            Log.d(TAG, "SerialPort close result < 0");
-//            sendMsg(3, "close failed");
             e.printStackTrace();
         }
-    }
+        sendMsg(3, "write success");
+        if (cbc.isChecked()) {
+            readCBC();
+        } else {
 
-    int timeout = 1000;
-
-    private void read() {
-        byte[] arryData = new byte[256];
-        try {
-            SerialPortOperationResult serialPortOperationResult = serialPortDevice.waitForRead(arryData.length, timeout);
-            byte[] data = serialPortOperationResult.getData();
-            int dataLength = serialPortOperationResult.getDataLength();
-            arryData = subByteArray(data, dataLength);
-            for (byte b : arryData) {
-                Logger.debug("arryData = " + b);
-            }
-            String toHexString = ByteConvertStringUtil.bytesToHexString(arryData);
-            if(toHexString.length()>0){
-                sendMsg(1, toHexString+"\n");
-                Logger.debug("Read HexString:"+toHexString);
-            }
-//            write(arryData);
-//            write(null);
-        } catch (DeviceException e) {
-//            sendMsg(3, "read failed");
-            e.printStackTrace();
         }
-    }
-
-    String int2hex(int intValue) {
-        if (intValue < 10) {
-            return "0" + Integer.toHexString(intValue);
-        }
-        return Integer.toHexString(intValue);
     }
 
     private void readCBC() {
@@ -371,105 +460,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void write(byte[] arryData) {
-        byte[] bytes = {
-                0x02,//STX
-                0x00, 0x03,//LENGTH
-                0x00, 0x23,//CMD
-
-/*
-                //Function parameters +++
-                0x02, 0x00, 0x00, 0x00,//ROW
-                0x00, 0x00, 0x00, 0x00,//COLUMN
-                0x00, 0x0A,//String length
-                0x50, 0x72, 0x6F, 0x63, 0x65, 0x73, 0x73, 0x69, 0x6E, 0x67,//String
-                0x00,//Attribute
-                //Function parameters ---
-*/
-
-                0x20,//XOR
-
-                0x03,//ETX
-        };
-        int result = -999;
-        RadioButton cbc = (RadioButton) findViewById(R.id.rb_usb_cdc);
-        if (cbc.isChecked()) {
-            try {
-                serialPortDevice.write(bytes, 0, bytes.length);
-            } catch (DeviceException e) {
-                sendMsg(3, "write failed");
-                e.printStackTrace();
-            }
-        } else if (arryData != null) {
-            try {
-                serialPortDevice.write(arryData, 0, bytes.length);
-            } catch (DeviceException e) {
-                sendMsg(3, "write failed");
-                e.printStackTrace();
-            }
-        } else {
-            String editVal = et_send.getText().toString();
-            if (editVal.isEmpty()) {
-                sendMsg(3, "please input content!");
-                return;
-            }
-            try {
-                serialPortDevice.write(editVal.getBytes(), 0, editVal.getBytes().length);
-//                byte[] bytes1 = {0x0f, 0x31, 0x35, 0x4d, 0x4b, 0x45, 0x59, 0x0e, 0x10};
-//                serialPortDevice.write(bytes1, 0, bytes1.length);
-            } catch (DeviceException e) {
-                sendMsg(3, "write failed");
-                e.printStackTrace();
-            }
+    String int2hex(int intValue) {
+        if (intValue < 10) {
+            return "0" + Integer.toHexString(intValue);
         }
-        sendMsg(3, "write success");
-        if (cbc.isChecked()) {
-            readCBC();
-        } else {
-
-        }
+        return Integer.toHexString(intValue);
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (isOpened) {
-            handler.removeMessages(5);
-            close();
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.open:
-                sendMsg(3, "");
-                if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_slave_serial) {
-                    open(0);
-                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_host_serial) {
-                    open(1);
-                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_cdc) {
-                    open(3);
-                }else if(portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_serial){
-                    open(2);
-                }
-                break;
-            case R.id.close:
-                sendMsg(4, null);
-                close();
-                break;
-            case R.id.write:
-                write(null);
-                break;
-            case R.id.tv_clr:
-                textView.setText("");
-                break;
-        }
-    }
-
-
-    private byte[] tempBytes = new byte[40960];
-
 
     private String getSystemPropertie(String key) {
         Object bootloaderVersion = null;
@@ -483,16 +479,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         return bootloaderVersion.toString();
     }
-
-    public byte[] subByteArray(byte[] byteArray, int length) {
-        byte[] arrySub = new byte[length];
-
-        for (int i = 0; i < length; ++i) {
-            arrySub[i] = byteArray[i];
-        }
-        return arrySub;
-    }
-
 
     private void send(final int byteLength) {
 //        byte[] arryData = new byte[1024];
@@ -603,17 +589,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
-    public String getPkgName(Context context) {
-        PackageManager manager = context.getPackageManager();
-        String name = null;
-        try {
-            PackageInfo info = manager.getPackageInfo(context.getPackageName(), 0);
-            name = info.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+    class BaudSpinnerSelectedListener implements AdapterView.OnItemSelectedListener {
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            String[] baudrates = getResources().getStringArray(R.array.baudrates);
+            Logger.debug("m[baudrateSpinner] = " + baudrates[position]);
+            et_baudrate.setText(baudrates[position]);
         }
 
-        return name;
+        public void onNothingSelected(AdapterView<?> parent) {
+        }
+    }
+
+    class ByteSpinnerSelectedListener implements AdapterView.OnItemSelectedListener {
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            String[] bytelength = getResources().getStringArray(R.array.bytelength);
+            Logger.debug("m[bytelenghtSpinner] = " + bytelength[position]);
+            byteCNT = Integer.parseInt(bytelength[position]);
+        }
+
+        public void onNothingSelected(AdapterView<?> parent) {
+        }
     }
 }
