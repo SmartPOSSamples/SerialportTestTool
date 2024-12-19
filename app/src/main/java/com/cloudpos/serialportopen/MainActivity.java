@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.cloudpos.DeviceException;
 import com.cloudpos.POSTerminal;
+import com.cloudpos.sdk.util.StringUtility;
 import com.cloudpos.serialport.SerialPortDevice;
 import com.cloudpos.serialport.SerialPortOperationResult;
 
@@ -424,10 +425,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.write:
                 String message = et_send.getText().toString();
                 if (!TextUtils.isEmpty(message)) {
+                    byte[] data = message.getBytes();
                     if (to_hex.isChecked()) {
                         message = StringUtil.stringToHexString(message);
+                        StringUtility.StringToByteArray(message, data);
                     }
-                    byte[] data = message.getBytes(StandardCharsets.UTF_8);
                     write(data);
                 } else {
                     sendMsg(3, "please input content!");
