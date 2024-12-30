@@ -7,7 +7,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +22,7 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -66,6 +71,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cb_flowcontrol = (CheckBox) findViewById(R.id.cb_flowcontrol);
         to_hex = (CheckBox) findViewById(R.id.toHex);
 
+        to_hex.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            String message = et_send.getText().toString();
+            if (!TextUtils.isEmpty(message)) {
+                if (isChecked) {
+                    String hex = ByteConvertStringUtil.bytesToHexString(message.getBytes(StandardCharsets.UTF_8));
+                    et_send.setText(hex);
+                } else {
+                    byte[] bytes = ByteConvertStringUtil.hexToByteArray(formatText(message));
+                    try {
+                        et_send.setText(new String(bytes, "utf-8"));
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        });
+
+        et_send.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                if (to_hex.isChecked()) {
+                    String inputText = charSequence.toString();
+                    if (count > 0) {
+                        char lastChar = inputText.charAt(inputText.length() - 1);
+                        if (!isHexadecimal(lastChar)) {
+                            et_send.setText(inputText.substring(0, inputText.length() - 1));
+                            et_send.setSelection(et_send.getText().length());
+                        } else {
+                            if (inputText.length() >= 3 && inputText.substring(inputText.length() - 3).matches("[0-9A-Fa-f]{3}")) {
+                                et_send.setText(addSpace(inputText));
+                                et_send.setSelection(et_send.getText().length());
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
 
         baudrateSpinner.setOnItemSelectedListener(new BaudSpinnerSelectedListener());
         baudrateSpinner.setSelection(5);
@@ -75,6 +128,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         closeBtn.setOnClickListener(this);
         writeBtn.setOnClickListener(this);
         tv_clr.setOnClickListener(this);
+    }
+
+    private void read(String hexString) {
+        byte[] arryData = new byte[256];
+        try {
+            SerialPortOperationResult serialPortOperationResult = serialPortDevice.waitForRead(arryData.length, timeout);
+            byte[] data = serialPortOperationResult.getData();
+            int dataLength = serialPortOperationResult.getDataLength();
+            arryData = subByteArray(data, dataLength);
+            for (byte b : arryData) {
+                Logger.debug("arryData = " + b);
+            }
+            String toHexString = ByteConvertStringUtil.bytesToHexString(arryData);
+            if (toHexString.length() > 0) {
+                sendMsg(1, "Hex: " + toHexString + "\n" + "Text: " + new String(arryData, "UTF-8"));
+                Logger.debug("Read HexString:" + toHexString);
+            }
+//            write(null);
+        } catch (DeviceException e) {
+//            sendMsg(3, "read failed");
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     class BaudSpinnerSelectedListener implements AdapterView.OnItemSelectedListener {
@@ -196,6 +273,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
     };
+
+    private boolean isHexadecimal(char c) {
+        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || c == ' ';
+    }
+
+    private String addSpace(String str) {
+        StringBuilder sb = new StringBuilder(str);
+        sb.insert(str.length() - 1, " ");
+        return sb.toString();
+    }
+
+    private String formatText(String input) {
+        input = input.replace(" ", "");
+        if (input.length() % 2 != 0) {
+            input = input.substring(0, input.length() - 1);
+        }
+        return input;
+    }
 
     private void intiRead() {
         byte[] arryData = new byte[256];
@@ -427,9 +522,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!TextUtils.isEmpty(message)) {
                     byte[] data = message.getBytes();
                     if (to_hex.isChecked()) {
-                        message = StringUtil.stringToHexString(message);
-                        StringUtility.StringToByteArray(message, data);
+                        data = ByteConvertStringUtil.hexToByteArray(formatText(message));
                     }
+                    Logger.debug("send message: " + data);
                     write(data);
                 } else {
                     sendMsg(3, "please input content!");

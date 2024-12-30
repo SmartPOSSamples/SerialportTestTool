@@ -8,6 +8,7 @@
     android:focusableInTouchMode="true"
     tools:context="com.cloudpos.serialportopen.MainActivity">
 
+
     <Button
         android:id="@+id/write"
         android:layout_width="wrap_content"
@@ -46,14 +47,14 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4"
-        app:layout_constraintHeight_percent="0.32"
+        app:layout_constraintTop_toBottomOf="@+id/et_baudrate"
+        app:layout_constraintHeight_percent="0.3"
         app:layout_constraintVertical_bias="0.0" />
 
     <RadioGroup
         android:id="@+id/port_mode"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="50dp"
         android:background="@drawable/txt_bg_shape"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -61,32 +62,31 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHeight_percent="0.065"
         app:layout_constraintVertical_bias="0">
 
         <RadioButton
             android:id="@+id/rb_usb_slave_serial"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="50dp"
             android:checked="true"
             android:text="slave" />
 
         <RadioButton
             android:id="@+id/rb_usb_host_serial"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="50dp"
             android:checked="true"
             android:text="host" />
 
         <RadioButton
             android:id="@+id/rb_usb_serial"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="50dp"
             android:text="ext  " />
         <RadioButton
             android:id="@+id/rb_usb_cdc"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="50dp"
             android:text="cdc  " />
 
     </RadioGroup>
@@ -94,11 +94,10 @@
     <Button
         android:id="@+id/open"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:text="open"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_percent="0.086"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.003"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -107,13 +106,12 @@
     <Button
         android:id="@+id/close"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:enabled="false"
         android:text="close"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_percent="0.086"
-        app:layout_constraintHorizontal_bias="0.365"
-        app:layout_constraintLeft_toLeftOf="@+id/open"
+        app:layout_constraintHorizontal_bias="0.341"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.092" />
@@ -121,19 +119,17 @@
     <EditText
         android:id="@+id/et_send"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="120dp"
         android:background="@drawable/txt_bg_shape"
         android:hint="please input content...(except CDC)"
         android:imeOptions="actionDone"
         android:padding="5dp"
         android:singleLine="true"
-        android:inputType="text|textNoSuggestions"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintHeight_percent="0.2"
         app:layout_constraintVertical_bias="0.067" />
 
     <TextView
@@ -166,7 +162,7 @@
     <EditText
         android:id="@+id/et_baudrate"
         android:layout_width="100dp"
-        android:layout_height="0dp"
+        android:layout_height="50dp"
         android:enabled="false"
         android:imeOptions="actionDone"
         android:inputType="number"
@@ -176,38 +172,38 @@
         app:layout_constraintHorizontal_bias="0.062"
         app:layout_constraintStart_toEndOf="@+id/sp_badrate"
         app:layout_constraintTop_toBottomOf="@+id/open"
-        app:layout_constraintHeight_percent="0.05"
         app:layout_constraintVertical_bias="1.0"
         android:visibility="gone"/>
 
     <Spinner
         android:id="@+id/sp_badrate"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginStart="92dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="55dp"
         android:entries="@array/baudrates"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_percent="0.068"
-        app:layout_constraintLeft_toLeftOf="@id/textView4"
         app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textView4"
         app:layout_constraintStart_toStartOf="@+id/textView4"
-        app:layout_constraintTop_toBottomOf="@+id/cb_flowcontrol"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/port_mode"
+        app:layout_constraintVertical_bias="0.041" />
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="80dp"
-        android:layout_height="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="50dp"
         android:gravity="center|right"
         android:text="Baudrate : "
         android:textColor="#000"
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/cb_flowcontrol"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHeight_percent="0.068"
-        app:layout_constraintVertical_bias="0.034" />
+        app:layout_constraintTop_toBottomOf="@+id/port_mode"
+        app:layout_constraintVertical_bias="0.054" />
 
     <CheckBox
         android:id="@+id/cb_flowcontrol"
@@ -215,11 +211,12 @@
         android:layout_height="wrap_content"
         android:checked="true"
         android:text="FlowControl"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/textView4"
+        app:layout_constraintEnd_toStartOf="@+id/open"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/open"
-        app:layout_constraintVertical_bias="0.092" />
+        app:layout_constraintTop_toBottomOf="@+id/port_mode"
+        app:layout_constraintVertical_bias="1.0" />
 
     <RadioGroup
         android:id="@+id/data_mode"

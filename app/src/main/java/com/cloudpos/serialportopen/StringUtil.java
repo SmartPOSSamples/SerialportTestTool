@@ -1,5 +1,7 @@
 package com.cloudpos.serialportopen;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class StringUtil {
@@ -24,4 +26,17 @@ public class StringUtil {
         return output.toString();
     }
 
+    public static byte[] hexStringToByteArray(String hex) {
+        int length = hex.length();
+        ByteBuffer buffer = ByteBuffer.allocate(length / 2);
+        CharBuffer charBuffer = CharBuffer.wrap(hex.toCharArray());
+        while (charBuffer.hasRemaining()) {
+            int high = Character.digit(charBuffer.get(), 16);
+            int low = Character.digit(charBuffer.get(), 16);
+            buffer.put((byte) ((high << 4) + low));
+        }
+        return buffer.array();
+    }
+
 }
+

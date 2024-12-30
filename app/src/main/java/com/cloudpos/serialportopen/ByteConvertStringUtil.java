@@ -7,11 +7,6 @@ import java.util.Locale;
  * Convert byte[] to hex string
  */
 public class ByteConvertStringUtil {
-    /**
-     * 将byte转换成int，然后利用Integer.toHexString(int)来转换成16进制字符串。
-     *
-     * @param src byte[] data
-     */
 
     public static String byteArrayToHexStr(byte[] byteArray) {
         if (byteArray == null) {
@@ -65,6 +60,28 @@ public class ByteConvertStringUtil {
         int v = src & 0xFF;
         String hv = Integer.toHexString(v);
         return hv;
+    }
+
+    public static byte[] hexToByteArray(String inHex) {
+        int hexlen = inHex.length();
+        byte[] result;
+        if (hexlen % 2 == 1) {
+            hexlen++;
+            result = new byte[(hexlen / 2)];
+            inHex = "0" + inHex;
+        } else {
+            result = new byte[(hexlen / 2)];
+        }
+        int j = 0;
+        for (int i = 0; i < hexlen; i += 2) {
+            result[j] = hexToByte(inHex.substring(i, i + 2));
+            j++;
+        }
+        return result;
+    }
+
+    public static byte hexToByte(String inHex) {
+        return (byte) Integer.parseInt(inHex, 16);
     }
 
 }
