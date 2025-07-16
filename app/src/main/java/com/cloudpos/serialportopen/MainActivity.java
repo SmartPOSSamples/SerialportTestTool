@@ -511,6 +511,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     open(3);
                 } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_serial) {
                     open(2);
+                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_vendor) {
+                    open(SerialPortDevice.ID_SERIAL_VENDOR);
                 }
                 break;
             case R.id.close:
