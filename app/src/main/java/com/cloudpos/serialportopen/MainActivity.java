@@ -265,9 +265,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     break;
                 case 7:
-                    et_baudrate.setEnabled(false);
-                    et_send.setEnabled(false);
-                    et_send.setHint("cdc:CMD is get PinPad SN");
                     break;
             }
         }
