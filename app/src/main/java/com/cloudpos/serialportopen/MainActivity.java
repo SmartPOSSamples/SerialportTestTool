@@ -264,8 +264,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         LogHelper.infoAppendMsg(msg.obj.toString(), textView);
                     }
                     break;
-                case 7:
-                    break;
             }
         }
 
@@ -344,11 +342,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 sendMsg(2, mode);
                 sendMsg(3, "open success,baudrtate = " + baudrtate);
                 isOpened = true;
-                if (mode == 3) {
-                    sendMsg(7, null);
-                } else {
-                    handler.sendEmptyMessageDelayed(5, 1L);
-                }
+                handler.sendEmptyMessageDelayed(5, 1L);
             } catch (DeviceException e) {
                 sendMsg(3, "setBaudrate failed, baudrtate = " + baudrtate);
                 e.printStackTrace();

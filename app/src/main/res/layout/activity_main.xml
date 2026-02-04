@@ -128,7 +128,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@drawable/txt_bg_shape"
-        android:hint="please input content...(except CDC)"
         android:imeOptions="actionDone"
         android:padding="5dp"
         android:singleLine="true"
