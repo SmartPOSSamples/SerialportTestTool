@@ -71,7 +71,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cb_flowcontrol = (CheckBox) findViewById(R.id.cb_flowcontrol);
         to_hex = (CheckBox) findViewById(R.id.toHex);
 
-
         to_hex.setOnCheckedChangeListener((buttonView, isChecked) -> {
             String message = et_send.getText().toString();
             if (!TextUtils.isEmpty(message)) {
