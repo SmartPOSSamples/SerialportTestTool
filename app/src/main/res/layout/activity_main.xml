@@ -6,276 +6,262 @@
     android:layout_height="match_parent"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    tools:context="com.cloudpos.serialportopen.MainActivity">
+    android:padding="4dp">
 
-    <Button
-        android:id="@+id/write"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:enabled="true"
-        android:text="SEND"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/et_send"
-        app:layout_constraintVertical_bias="0.01" />
-
-    <CheckBox
-        android:id="@+id/toHex"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:enabled="true"
-        android:text="Hex"
-        android:checked="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.656"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/et_send"
-        app:layout_constraintVertical_bias="0.091" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="@drawable/txt_bg_shape"
-        android:padding="5dp"
-        android:scrollbars="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4"
-        app:layout_constraintHeight_percent="0.32"
-        app:layout_constraintVertical_bias="0.0" />
-
+    <!-- Port Mode -->
     <RadioGroup
         android:id="@+id/port_mode"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:background="@drawable/txt_bg_shape"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHeight_percent="0.065"
-        app:layout_constraintVertical_bias="0">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <RadioButton
             android:id="@+id/rb_usb_slave_serial"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:checked="true"
-            android:text="slave" />
+            android:text="slave"
+            android:textSize="11sp" />
 
         <RadioButton
             android:id="@+id/rb_usb_host_serial"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:checked="true"
-            android:text="host" />
+            android:layout_height="wrap_content"
+            android:text="host"
+            android:textSize="11sp" />
 
         <RadioButton
             android:id="@+id/rb_usb_serial"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="ext  " />
+            android:layout_height="wrap_content"
+            android:text="ext"
+            android:textSize="11sp" />
+
         <RadioButton
             android:id="@+id/rb_usb_cdc"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="cdc  " />
+            android:layout_height="wrap_content"
+            android:text="cdc"
+            android:textSize="11sp" />
+
         <RadioButton
             android:id="@+id/rb_usb_ext2"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="ext2  " />
-
+            android:layout_height="wrap_content"
+            android:text="ext2"
+            android:textSize="11sp" />
     </RadioGroup>
 
     <Button
         android:id="@+id/open"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:text="open"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_percent="0.086"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.092" />
+        android:layout_height="36dp"
+        android:layout_marginTop="2dp"
+        android:text="Open"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@+id/close"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/port_mode" />
 
     <Button
         android:id="@+id/close"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="36dp"
         android:enabled="false"
-        android:text="close"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_percent="0.086"
-        app:layout_constraintHorizontal_bias="0.365"
-        app:layout_constraintLeft_toLeftOf="@+id/open"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.092" />
-
-    <EditText
-        android:id="@+id/et_send"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="@drawable/txt_bg_shape"
-        android:imeOptions="actionDone"
-        android:padding="5dp"
-        android:singleLine="true"
-        android:inputType="text|textNoSuggestions"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:layout_constraintHeight_percent="0.2"
-        app:layout_constraintVertical_bias="0.067" />
-
-    <TextView
-        android:id="@+id/tv_clr"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_margin="10dp"
-        android:text="X"
-        android:textAlignment="center"
-        android:textColor="@color/colorAccent"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView"
-        app:layout_constraintEnd_toEndOf="@+id/textView"
-        app:layout_constraintHorizontal_bias="1"
-        app:layout_constraintStart_toStartOf="@+id/textView"
-        app:layout_constraintTop_toTopOf="@+id/textView"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <TextView
-        android:id="@+id/tv_log"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/write"
-        app:layout_constraintTop_toBottomOf="@+id/et_send"
-        app:layout_constraintVertical_bias="0.1" />
-
-    <EditText
-        android:id="@+id/et_baudrate"
-        android:layout_width="100dp"
-        android:layout_height="0dp"
-        android:enabled="false"
-        android:imeOptions="actionDone"
-        android:inputType="number"
-        android:padding="5dp"
-        app:layout_constraintBottom_toBottomOf="@+id/sp_badrate"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.062"
-        app:layout_constraintStart_toEndOf="@+id/sp_badrate"
-        app:layout_constraintTop_toBottomOf="@+id/open"
-        app:layout_constraintHeight_percent="0.05"
-        app:layout_constraintVertical_bias="1.0"
-        android:visibility="gone"/>
+        android:text="Close"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/open"
+        app:layout_constraintStart_toEndOf="@+id/open"
+        app:layout_constraintTop_toTopOf="@+id/open" />
 
     <Spinner
         android:id="@+id/sp_badrate"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginStart="92dp"
+        android:layout_width="0dp"
+        android:layout_height="36dp"
         android:entries="@array/baudrates"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_percent="0.068"
-        app:layout_constraintLeft_toLeftOf="@id/textView4"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/textView4"
-        app:layout_constraintTop_toBottomOf="@+id/cb_flowcontrol"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintBottom_toBottomOf="@+id/close"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/close" />
 
+
+    <!-- Send Area -->
     <TextView
-        android:id="@+id/textView4"
-        android:layout_width="80dp"
-        android:layout_height="0dp"
-        android:gravity="center|right"
-        android:text="Baudrate : "
-        android:textColor="#000"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/cb_flowcontrol"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHeight_percent="0.068"
-        app:layout_constraintVertical_bias="0.034" />
+        android:id="@+id/tv_send_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Send:"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/open" />
+
+    <CheckBox
+        android:id="@+id/toHex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hex"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_send_label"
+        app:layout_constraintStart_toEndOf="@+id/tv_send_label"
+        app:layout_constraintTop_toTopOf="@+id/tv_send_label" />
 
     <CheckBox
         android:id="@+id/cb_flowcontrol"
         android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginStart="8dp"
+        android:checked="true"
+        android:text="Flow"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@+id/toHex"
+        app:layout_constraintStart_toEndOf="@+id/toHex"
+        app:layout_constraintTop_toTopOf="@+id/toHex" />
+
+    <Button
+        android:id="@+id/write"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:enabled="false"
+        android:text="SEND"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_send_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_send_label" />
+
+
+    <EditText
+        android:id="@+id/et_send"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:background="@drawable/txt_bg_shape"
+        android:imeOptions="actionDone"
+        android:inputType="text|textNoSuggestions"
+        android:padding="4dp"
+        android:singleLine="true"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/write" />
+
+
+    <!-- Receive Area -->
+    <TextView
+        android:id="@+id/tv_recv_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="Recv:"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/et_send" />
+
+    <CheckBox
+        android:id="@+id/cb_display_hex"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:checked="true"
-        android:text="FlowControl"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/open"
-        app:layout_constraintVertical_bias="0.092" />
+        android:text="Hex"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_recv_label"
+        app:layout_constraintStart_toEndOf="@+id/tv_recv_label"
+        app:layout_constraintTop_toTopOf="@+id/tv_recv_label" />
 
+    <!-- Read Mode -->
+    <RadioGroup
+        android:id="@+id/read_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_recv_label"
+        app:layout_constraintStart_toEndOf="@+id/cb_display_hex"
+        app:layout_constraintTop_toTopOf="@+id/tv_recv_label">
+
+        <RadioButton
+            android:id="@+id/rb_read_fixed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fixed"
+            android:textSize="11sp" />
+
+        <RadioButton
+            android:id="@+id/rb_read_unknown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Unknown"
+            android:textSize="11sp" />
+
+        <RadioButton
+            android:id="@+id/rb_read_frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Frame"
+            android:textSize="11sp" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
+        android:layout_height="130dp"
+        android:background="@drawable/txt_bg_shape"
+        android:padding="4dp"
+        android:scrollbars="vertical"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/read_mode" />
+
+    <TextView
+        android:id="@+id/tv_clr"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:text="X"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:textColor="@color/colorAccent"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/read_mode" />
+
+    <!-- Status -->
+    <TextView
+        android:id="@+id/tv_log"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="#666666"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <!-- Hidden elements (kept for compatibility) -->
     <RadioGroup
         android:id="@+id/data_mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="@+id/et_baudrate"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <RadioButton
-            android:id="@+id/rb_echo"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:text="echo" />
-
-        <RadioButton
-            android:id="@+id/rb_send"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:checked="true"
-            android:text="send" />
-    </RadioGroup>
+        android:visibility="gone" />
 
     <Spinner
         android:id="@+id/sp_sendbyte"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:entries="@array/bytelength"
-        android:inputType="number"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/et_baudrate"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.967"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/open"
-        app:layout_constraintVertical_bias="0.05" />
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/bytelength"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="63dp"
-        android:text="byte"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/textView"
-        app:layout_constraintEnd_toStartOf="@+id/sp_sendbyte"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/data_mode"
-        app:layout_constraintTop_toBottomOf="@+id/port_mode"
-        app:layout_constraintVertical_bias="1.0"
-        android:visibility="gone"/>
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/et_baudrate"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

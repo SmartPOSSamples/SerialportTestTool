@@ -13,7 +13,8 @@ import android.text.style.ForegroundColorSpan;
 import android.widget.TextView;
 
 /**
- * @author john 打印信息的格式控制类。 红色：出现的问题。 绿色：正常的信息。 黄色：可能出现的问题。 1 : color is black 2
+ * @author john Print message with color formatting.  Red: errors. Green: normal info. Yellow: warnings.
+ * 1 : color is black 2
  * : color is yellow 3 : color is blue 4 : color is red other number :
  * color is black;
  */
@@ -26,7 +27,7 @@ public class LogHelper {
      *
      * @param TextView text
      * @param String   infoMsg : color is red < color name="red">#FF0000< /color><
-     *                 !--红色 -->
+     *                 !--red -->
      */
     @Deprecated
     public static void infoException(TextView text, String infoMsg) {
@@ -135,7 +136,7 @@ public class LogHelper {
     }
 
     /**
-     * 蓝色字体打印成功信息
+     * print success info in blue
      *
      * @param msg
      * @param text
@@ -163,7 +164,7 @@ public class LogHelper {
     }
 
     /**
-     * 红色字体打印失败信息
+     * print failure info in red
      *
      * @param msg
      * @param text
@@ -192,7 +193,7 @@ public class LogHelper {
     }
 
     /**
-     * 给textresult上用黑色写上命令。
+     * append command message in black to txtResult
      */
     public static void infoAppendMsg(String msg, TextView txtResult) {
         // TextView text = PreMainActivity.txtResult;
@@ -278,7 +279,7 @@ public class LogHelper {
     }
 
     /**
-     * 蓝色字体打印成功信息
+     * print success info in blue
      *
      * @param msg
      * @param text
@@ -306,7 +307,7 @@ public class LogHelper {
     }
 
     /**
-     * 红色字体打印失败信息
+     * print failure info in red
      *
      * @param msg
      * @param text

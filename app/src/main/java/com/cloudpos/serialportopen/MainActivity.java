@@ -5,11 +5,10 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.text.Editable;
-import android.text.InputFilter;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -22,16 +21,16 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.cloudpos.DeviceException;
 import com.cloudpos.POSTerminal;
-import com.cloudpos.sdk.util.StringUtility;
+import com.cloudpos.TimeConstants;
 import com.cloudpos.serialport.SerialPortDevice;
 import com.cloudpos.serialport.SerialPortOperationResult;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
@@ -42,11 +41,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "SerialPortOpenDemo";
 
     private Button openBtn, closeBtn, writeBtn;
-    private TextView textView, tv_clr, tv_log;
-    private RadioGroup portModeRG, dataModeRG;
+    private TextView textView,tv_clr, tv_log;
+    private RadioGroup portModeRG, dataModeRG, readModeRG;
     private EditText et_send, et_baudrate;
     private Spinner baudrateSpinner, bytelenghtSpinner;
-    private CheckBox cb_flowcontrol, to_hex;
+    private CheckBox cb_flowcontrol, to_hex, cb_display_hex;
 
 
     @Override
@@ -64,12 +63,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         portModeRG = (RadioGroup) findViewById(R.id.port_mode);
         dataModeRG = (RadioGroup) findViewById(R.id.data_mode);
+        readModeRG = (RadioGroup) findViewById(R.id.read_mode);
         et_send = (EditText) findViewById(R.id.et_send);
         et_baudrate = (EditText) findViewById(R.id.et_baudrate);
         baudrateSpinner = (Spinner) findViewById(R.id.sp_badrate);
         bytelenghtSpinner = (Spinner) findViewById(R.id.sp_sendbyte);
         cb_flowcontrol = (CheckBox) findViewById(R.id.cb_flowcontrol);
         to_hex = (CheckBox) findViewById(R.id.toHex);
+        cb_display_hex = (CheckBox) findViewById(R.id.cb_display_hex);
+
+        to_hex.setChecked(true);
+        cb_display_hex.setChecked(true);
 
         to_hex.setOnCheckedChangeListener((buttonView, isChecked) -> {
             String message = et_send.getText().toString();
@@ -189,11 +193,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     super.run();
                     while (run) {
                         read();
-                        try {
-                            sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
                     }
                 }
             };
@@ -204,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    Handler handler = new Handler() {
+    Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -223,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     bytelenghtSpinner.setEnabled(false);
                     disableRadioGroup(portModeRG);
                     disableRadioGroup(dataModeRG);
+                    disableRadioGroup(readModeRG);
                     break;
                 case 3:
                     tv_log.setText(msg.obj.toString());
@@ -232,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     openBtn.setEnabled(true);
                     enableRadioGroup(portModeRG);
                     enableRadioGroup(dataModeRG);
+                    enableRadioGroup(readModeRG);
                     writeBtn.setEnabled(false);
                     closeBtn.setEnabled(false);
                     cb_flowcontrol.setEnabled(true);
@@ -369,27 +370,112 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     int timeout = 1000;
 
+    private static final int FIXED_LENGTH = 16;
+    private static final int TIMEOUT_TAIL = 200;
+
     private void read() {
-        byte[] arryData = new byte[256];
+        int checkedId = readModeRG.getCheckedRadioButtonId();
+        if (checkedId == R.id.rb_read_fixed) {
+            readFixed();
+        } else if (checkedId == R.id.rb_read_unknown) {
+            readUnknown();
+        } else if (checkedId == R.id.rb_read_frame) {
+            readFrame();
+        }
+    }
+
+    private void readFixed() {
         try {
-            SerialPortOperationResult serialPortOperationResult = serialPortDevice.waitForRead(arryData.length, timeout);
-            byte[] data = serialPortOperationResult.getData();
-            int dataLength = serialPortOperationResult.getDataLength();
-            arryData = subByteArray(data, dataLength);
-            for (byte b : arryData) {
-                Logger.debug("arryData = " + b);
-            }
-            String toHexString = ByteConvertStringUtil.bytesToHexString(arryData);
-            if (toHexString.length() > 0) {
-                sendMsg(1, "Hex: " + toHexString + "\n" + "Text: " + new String(arryData, "UTF-8"));
-                Logger.debug("Read HexString:" + toHexString);
-            }
-//            write(null);
+            // Read exactly FIXED_LENGTH bytes with forever timeout
+            SerialPortOperationResult result = serialPortDevice.waitForRead(FIXED_LENGTH, TimeConstants.FOREVER);
+            int dataLength = result.getDataLength();
+            if (dataLength <= 0) return;
+            // discard partial data when close() interrupts waitForRead
+            if (!isOpened) return;
+            byte[] data = subByteArray(result.getData(), dataLength);
+            displayData(data);
         } catch (DeviceException e) {
-//            sendMsg(3, "read failed");
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            Log.d(TAG, "readFixed SerialPort error" + e.toString());
+            e.printStackTrace();
+        }
+    }
+
+    private void readUnknown() {
+        try {
+            // Step 1: Block until at least 1 byte arrives
+            SerialPortOperationResult result = serialPortDevice.waitForRead(1, TimeConstants.FOREVER);
+            if (result.getDataLength() <= 0) {
+                return;
+            }
+
+            // Accumulate all received data
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            baos.write(result.getData(), 0, result.getDataLength());
+
+            // Step 2: Read remaining data in a loop with 200ms timeout
+            while (true) {
+                SerialPortOperationResult moreResult = serialPortDevice.waitForRead(256, TIMEOUT_TAIL);
+                int dataLength = moreResult.getDataLength();
+                if (dataLength <= 0) {
+                    break; // timeout, no more data
+                }
+                baos.write(moreResult.getData(), 0, dataLength);
+            }
+
+            // Display all received data at once
+            byte[] allData = baos.toByteArray();
+            displayData(allData);
+
+        } catch (DeviceException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            Log.d(TAG, "readUnknown SerialPort error" + e.toString());
+            e.printStackTrace();
+        }
+    }
+
+    private void readFrame() {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            while (true) {
+                // Read 1 byte at a time, blocking forever
+                SerialPortOperationResult result = serialPortDevice.waitForRead(1, TimeConstants.FOREVER);
+                if (result.getDataLength() <= 0) continue;
+                baos.write(result.getData(), 0, result.getDataLength());
+
+                // Try to extract a framed segment (between 0x02 and 0x03)
+                byte[] segment = ByteConvertStringUtil.extractDataSegments(baos.toByteArray());
+                if (segment != null && segment.length > 0) {
+                    // wrap markers back for display
+                    displayData("Frame", ByteConvertStringUtil.addFrameMarkers(segment));
+                    break;
+                }
+            }
+        } catch (DeviceException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            Log.d(TAG, "readFrame SerialPort error" + e.toString());
+            e.printStackTrace();
+        }
+    }
+
+    private void displayData(byte[] data) throws UnsupportedEncodingException {
+        displayData(null, data);
+    }
+
+    private void displayData(String prefix, byte[] data) throws UnsupportedEncodingException {
+        String toHexString = ByteConvertStringUtil.bytesToHexString(data);
+        if (toHexString.length() > 0) {
+            String label = (prefix != null ? prefix + " " : "");
+            boolean showHex = cb_display_hex.isChecked();
+            if (showHex) {
+                sendMsg(1, label + "Hex: " + toHexString);
+            } else {
+                sendMsg(1, label + "Text: " + new String(data, "UTF-8"));
+            }
+            Logger.debug("Read HexString:" + toHexString);
         }
     }
 
@@ -469,14 +555,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (serialPortDevice == null) {
             sendMsg(3, "serial port device is not open");
             return;
-        } else {
-            try {
-                serialPortDevice.write(arryData, 0, arryData.length);
-                sendMsg(3, "write success");
-            } catch (DeviceException e) {
-                sendMsg(3, "write failed");
-                e.printStackTrace();
-            }
+        }
+        try {
+            serialPortDevice.write(arryData, 0, arryData.length);
+            sendMsg(3, "write success");
+        } catch (DeviceException e) {
+            sendMsg(3, "write failed");
+            e.printStackTrace();
         }
     }
 
@@ -491,42 +576,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.open:
-                sendMsg(3, "");
-                if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_slave_serial) {
-                    open(0);
-                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_host_serial) {
-                    open(1);
-                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_cdc) {
-                    open(3);
-                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_serial) {
-                    open(2);
-                } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_ext2) {
-                    open(SerialPortDevice.ID_SERIAL_EXT2);
+        int id = view.getId();
+        if (id == R.id.open) {
+            sendMsg(3, "");
+            if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_slave_serial) {
+                open(0);
+            } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_host_serial) {
+                open(1);
+            } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_cdc) {
+                open(3);
+            } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_serial) {
+                open(2);
+            } else if (portModeRG.getCheckedRadioButtonId() == R.id.rb_usb_ext2) {
+                open(SerialPortDevice.ID_SERIAL_EXT2);
+            }
+        } else if (id == R.id.close) {
+            sendMsg(4, null);
+            close();
+        } else if (id == R.id.write) {
+            String message = et_send.getText().toString();
+            if (!TextUtils.isEmpty(message)) {
+                byte[] data = message.getBytes();
+                if (to_hex.isChecked()) {
+                    data = ByteConvertStringUtil.hexToByteArray(formatText(message));
                 }
-                break;
-            case R.id.close:
-                sendMsg(4, null);
-                close();
-                break;
-            case R.id.write:
-                String message = et_send.getText().toString();
-                if (!TextUtils.isEmpty(message)) {
-                    byte[] data = message.getBytes();
-                    if (to_hex.isChecked()) {
-                        data = ByteConvertStringUtil.hexToByteArray(formatText(message));
-                    }
-                    Logger.debug("send message: " + data);
-                    write(data);
-                } else {
-                    sendMsg(3, "please input content!");
-                    return;
-                }
-                break;
-            case R.id.tv_clr:
-                textView.setText("");
-                break;
+                Logger.debug("send message: " + data);
+                write(data);
+            } else {
+                sendMsg(3, "please input content!");
+                return;
+            }
+        } else if (id == R.id.tv_clr) {
+            textView.setText("");
         }
     }
 
@@ -645,7 +726,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * 启用RadioGroup
+     * enable RadioGroup
      *
      * @param radioGroup
      */
@@ -656,7 +737,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * 禁用RadioGroup
+     * disable RadioGroup
      *
      * @param radioGroup
      */
